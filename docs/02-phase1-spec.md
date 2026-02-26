@@ -2,10 +2,27 @@
 
 ## Understanding Layer Implementation
 
-**Version:** 1.0  
+**Version:** 2.0 (Hội Nghị Diên Hồng Approved)  
 **Date:** 2026-02-26  
-**Status:** Ready for Implementation  
+**Status:** ✅ Approved for Implementation  
 **Priority:** 🔴 Critical
+
+---
+
+## 🏛️ HỘI NGHỊ DIÊN HỒNG APPROVAL
+
+**Meeting:** Hội Nghị Diên Hồng LCL Corp  
+**Date:** 2026-02-26 15:30-16:30 UTC  
+**Result:** ✅ **5/5 MOTIONS PASSED - UNANIMOUS (6/6 Yes)**
+
+**Key Decisions:**
+1. ✅ **Personal-First Architecture** (single-user, SQLite, simplified)
+2. ✅ **OpenClaw-Native LLM Routing** (fetch từ gateway, auto-select)
+3. ✅ **Success Criteria** (≥90% date, ≥85% entity, <4GB RAM, <15s latency)
+4. ✅ **Simplified Security** (encryption, access control, audit, **NO rate limit**)
+5. ✅ **Ủy quyền Implement Phase 1a** (4 weeks, Feb 26 - Mar 25)
+
+**Meeting Notes:** `docs/meeting-notes-2026-02-26.md`
 
 ---
 
@@ -29,17 +46,24 @@ Add background LLM processing that:
 - ✅ Extracts entities (who, what, when, where)
 - ✅ Resolves relative dates → absolute dates
 - ✅ Assigns quality scores (1-5 stars)
-- ✅ Categorizes by persona (personal/technical/social)
+- ✅ Categorizes by persona (personal/technical)
+
+### Scope (Hội Nghị Decision)
+
+**Personal-First:** Single-user for Bro (not multi-tenant SaaS)  
+**OpenClaw-Native:** Fetch models từ OpenClaw gateway (no duplicate config)  
+**Resource-Aware:** Auto-detect RAM → Select model (local → cloud fallback)  
+**Simplified:** SQLite storage, file encryption, basic audit, **NO rate limit**
 
 ---
 
 ## 2. Architecture
 
-### Component Diagram
+### Component Diagram (Updated for Personal-First)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│              Phase 1 Architecture                           │
+│              Phase 1 Architecture (Personal-First)          │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  Chat Session → [Message Counter]                           │
@@ -47,13 +71,21 @@ Add background LLM processing that:
 │                       │ (every 20 messages)                 │
 │                       ▼                                     │
 │              [Background Processor]                         │
-│              (cron job or message trigger)                  │
+│              (async, non-blocking)                          │
+│                       │                                     │
+│                       ▼                                     │
+│         ┌─────────────────────────────┐                    │
+│         │  OpenClaw Model Router      │                    │
+│         │  - Fetch from gateway       │                    │
+│         │  - Auto-select by RAM       │                    │
+│         │  - Local → Cloud fallback   │                    │
+│         └─────────────────────────────┘                    │
 │                       │                                     │
 │                       ▼                                     │
 │         ┌─────────────────────────────┐                    │
 │         │  Understanding LLM          │                    │
-│         │  Model: qwen-3b-coder       │                    │
-│         │  (cheap, fast, local)       │                    │
+│         │  Model: Auto-selected       │                    │
+│         │  (OpenClaw providers)       │                    │
 │         └─────────────────────────────┘                    │
 │                       │                                     │
 │                       ▼                                     │
@@ -67,10 +99,10 @@ Add background LLM processing that:
 │                       │                                     │
 │                       ▼                                     │
 │         ┌─────────────────────────────┐                    │
-│         │  NeuralMemory Store         │                    │
+│         │  SQLite Memory Store        │                    │
 │         │  - Enhanced schema          │                    │
+│         │  - File encryption          │                    │
 │         │  - Quality-indexed          │                    │
-│         │  - Persona-partitioned      │                    │
 │         └─────────────────────────────┘                    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
