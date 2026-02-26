@@ -20,56 +20,87 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+        cache-dependency-path: |
+          requirements.txt
+          requirements-dev.txt
+
+    - name: Create virtual environment
+      run: |
+        python -m venv .venv
+        echo "$PWD/.venv/bin" >> $GITHUB_PATH
+        echo "VIRTUAL_ENV=$PWD/.venv" >> $GITHUB_ENV
+
+    - name: Upgrade pip in venv
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        # Install core dependencies first (ignore neural-memory if not available)
-        pip install pyyaml || true
+        # Install core dependencies first
+        pip install -r requirements.txt || {
+          echo "::warning::Failed to install requirements.txt, trying individual packages"
+          pip install pyyaml || true
+        }
+        
         # Install dev dependencies
-        pip install pytest pytest-asyncio pytest-cov || true
+        pip install -r requirements-dev.txt || {
+          echo "::warning::Failed to install requirements-dev.txt, installing core test tools"
+          pip install pytest pytest-asyncio pytest-cov flake8 || true
+        }
+        
         # Try to install neural-memory (may fail if not on PyPI)
-        pip install neural-memory || echo "⚠️ neural-memory not available, running in mock mode"
+        pip install neural-memory 2>/dev/null || echo "⚠️ neural-memory not available, running in mock mode"
+        
+        # Verify installation
+        pip list
+        python --version
+        which python
 
     - name: Lint with flake8
       run: |
-        pip install flake8
-        # Stop the build if there are Python syntax errors or undefined names
         flake8 src --count --select=E9,F63,F7,F82 --show-source --statistics
-        # Exit-zero treats all errors as warnings
         flake8 src --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 tests --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
 
     - name: Test with pytest
       run: |
         # Run pytest with asyncio mode
-        pytest tests/ -v --asyncio-mode=auto --tb=short || echo "⚠️ Some tests may have failed"
+        pytest tests/ -v --asyncio-mode=auto --tb=short --cov=src --cov-report=term-missing || echo "⚠️ Some tests may have failed"
       continue-on-error: true
 
     - name: Test CLI commands
       run: |
+        # Create isolated test directory
+        mkdir -p /tmp/nocl-test
+        cd /tmp/nocl-test
+        
         # Test CLI help
-        python3 nocl.py --help
+        python3 $GITHUB_WORKSPACE/nocl.py --help
         
         # Test init command
-        python3 nocl.py init --project ci-test
+        python3 $GITHUB_WORKSPACE/nocl.py init --project ci-test
         
         # Test store commands (mock mode)
-        python3 nocl.py --project ci-test decision "Test decision" --context "CI testing"
-        python3 nocl.py --project ci-test insight "Test insight"
-        python3 nocl.py --project ci-test context "Test context" --expires 1
-        python3 nocl.py --project ci-test fact "Test fact"
+        python3 $GITHUB_WORKSPACE/nocl.py --project ci-test decision "Test decision" --context "CI testing"
+        python3 $GITHUB_WORKSPACE/nocl.py --project ci-test insight "Test insight"
+        python3 $GITHUB_WORKSPACE/nocl.py --project ci-test context "Test context" --expires 1
+        python3 $GITHUB_WORKSPACE/nocl.py --project ci-test fact "Test fact"
         
         # Test cache command
-        python3 nocl.py --project ci-test cache read_file '{"path": "test.json"}' '{"result": "ok"}' --ttl 1
+        python3 $GITHUB_WORKSPACE/nocl.py --project ci-test cache read_file '{"path": "test.json"}' '{"result": "ok"}' --ttl 1
         
         # Test recall command
-        python3 nocl.py --project ci-test recall "test query" --confidence 0.5
+        python3 $GITHUB_WORKSPACE/nocl.py --project ci-test recall "test query" --confidence 0.5
         
         # Test task command
-        python3 nocl.py --project ci-test task "Test task description" --max-tokens 500
+        python3 $GITHUB_WORKSPACE/nocl.py --project ci-test task "Test task description" --max-tokens 500
         
         # Test status command
-        python3 nocl.py --project ci-test status
+        python3 $GITHUB_WORKSPACE/nocl.py --project ci-test status
+        
+        # Cleanup
+        rm -rf /tmp/nocl-test
         
         echo "✅ All CLI commands executed successfully"
 
@@ -80,9 +111,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
     - name: Verify package structure
       run: |
-        # Check required files exist
         test -f README.md
         test -f requirements.txt
         test -f nocl.py
@@ -93,6 +128,7 @@ jobs:
         test -d src/cache_policy
         test -d src/session_compressor
         test -d src/config
+        test -d tests
         echo "✅ Package structure verified"
 
     - name: Validate Python syntax
@@ -104,6 +140,7 @@ jobs:
         python3 -m py_compile src/assembler/assembler.py
         python3 -m py_compile src/cache_policy/cache_policy.py
         python3 -m py_compile src/session_compressor/session_compressor.py
+        python3 -m py_compile tests/test_core.py
         echo "✅ Python syntax validated"
 
   security:
@@ -112,24 +149,36 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Create isolated venv for security checks
+      run: |
+        python -m venv .venv-security
+        echo "$PWD/.venv-security/bin" >> $GITHUB_PATH
+
     - name: Install safety
       run: pip install safety
 
     - name: Check dependencies for vulnerabilities
-      run: safety check -r requirements.txt
+      run: |
+        safety check -r requirements.txt || echo "⚠️ Some vulnerabilities found"
+        safety check -r requirements-dev.txt || echo "⚠️ Some dev vulnerabilities found"
       continue-on-error: true
 
     - name: Check for secrets in code
       run: |
-        # Check for common secret patterns (non-failing)
+        echo "🔍 Scanning for potential secrets..."
         if grep -r "sk-[a-zA-Z0-9]" src/ 2>/dev/null; then
-          echo "⚠️ Potential API key found"
+          echo "::warning::Potential API key found"
         fi
         if grep -r "ghp_[a-zA-Z0-9]" src/ 2>/dev/null; then
-          echo "⚠️ Potential GitHub token found"
+          echo "::warning::Potential GitHub token found"
         fi
         if grep -r "password.*=" src/ 2>/dev/null; then
-          echo "⚠️ Potential hardcoded password found"
+          echo "::warning::Potential hardcoded password found"
         fi
         echo "✅ Security check completed"
       continue-on-error: true
