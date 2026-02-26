@@ -84,7 +84,9 @@ anaconda/
 miniconda/
 
 # CI/CD
+# GitHub (but allow workflows)
 .github/
+!.github/workflows/
 .circleci/
 .drone.yml
 .gitlab-ci.yml
@@ -120,6 +122,10 @@ docs/_build/
 .coverage
 htmlcov/
 .tox/
+.pytest/
+coverage.xml
+.coverage.*
+test-results/
 
 # Node.js
 npm-debug.log*

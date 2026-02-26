@@ -1,5 +1,9 @@
 # NeuralOpenClaw
 
+[![CI](https://github.com/linda-agi/neural-openclaw/actions/workflows/ci.yml/badge.svg)](https://github.com/linda-agi/neural-openclaw/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+
 Integration of NeuralMemory with OpenClaw for intelligent episodic memory and token-efficient AI interactions.
 
 ## Overview
@@ -117,13 +121,74 @@ context = await memory.recall("Why did we choose SQLite?")
 
 See `config/memory_config.yaml` for adjustable parameters.
 
+## Development
+
+### Setup Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/linda-agi/neural-openclaw.git
+cd neural-openclaw
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run with coverage
+pytest tests/ -v --cov=src --cov-report=html
+
+# Run specific test file
+pytest tests/test_core.py -v
+
+# Run specific test class
+pytest tests/test_core.py::TestSmartMemoryRouter -v
+```
+
+### Code Quality
+
+```bash
+# Lint with flake8
+flake8 src tests
+
+# Format with black
+black src tests
+
+# Sort imports with isort
+isort src tests
+
+# Type check with mypy
+mypy src
+```
+
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
 4. Add tests if applicable
-5. Submit a pull request
+5. Ensure all tests pass (`pytest`)
+6. Run linter (`flake8`)
+7. Submit a pull request
+
+### CI/CD
+
+This project uses GitHub Actions for continuous integration. Every push and pull request automatically triggers:
+- ✅ Python syntax validation
+- ✅ Unit tests with pytest
+- ✅ CLI command tests
+- ✅ Code linting with flake8
+- ✅ Security checks with safety
 
 ## License
 
