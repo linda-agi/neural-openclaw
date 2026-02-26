@@ -1,18 +1,24 @@
 {
   "name": "neural-openclaw",
   "version": "0.1.0",
-  "description": "NeuralMemory integration for OpenClaw",
-  "main": "index.js",
+  "description": "NeuralMemory integration for OpenClaw - Smart episodic memory with token-efficient AI interactions",
+  "main": "src/__init__.py",
+  "bin": {
+    "nocl": "./nocl.py"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "pip install -r requirements.txt"
   },
   "keywords": [
     "openclaw",
     "neuralmemory",
     "ai",
     "memory",
-    "integration"
+    "integration",
+    "cli",
+    "episodic-memory"
   ],
-  "author": "LCL Corp",
+  "author": "Linda agi (LCL Corp)",
   "license": "MIT"
 }

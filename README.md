@@ -56,7 +56,38 @@ pip install neural-memory
 
 ## Usage
 
-### Basic Integration
+### CLI Interface (like `qmd`)
+
+```bash
+# Initialize project
+python nocl.py init --project my-project
+
+# Store a decision
+python nocl.py decision "Using SQLite" --context "Lightweight and portable"
+
+# Store session context (expires in 12h)
+python nocl.py context "Working on feature X" --expires 12
+
+# Store insight/lesson
+python nocl.py insight "Bug fixed: race condition in async code"
+
+# Store fact (permanent or with expiry)
+python nocl.py fact "API endpoint: https://api.example.com" --expires 24
+
+# Cache tool result
+python nocl.py cache read_file '{"path": "config.json"}' '{"key": "value"}' --ttl 2
+
+# Recall information
+python nocl.py recall "Why did we choose SQLite?" --confidence 0.7 --depth 2
+
+# Get task-optimized context
+python nocl.py task "Implement caching layer" --max-tokens 800
+
+# Show status
+python nocl.py status --project my-project
+```
+
+### Python API Integration
 
 ```python
 from neural_openclaw import NeuralMemoryLayer, SmartMemoryRouter
