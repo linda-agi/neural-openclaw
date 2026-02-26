@@ -15,6 +15,22 @@ NeuralOpenClaw bridges OpenClaw's traditional memory system with NeuralMemory's 
 - **Decision recall** for architectural and technical choices
 - **Context assembly** optimized for token efficiency
 
+## 🚀 NeuralOpenClaw 2.0 - Coming Soon
+
+We're building an **Understanding Layer** that truly understands and remembers:
+
+- 🧠 **Entity Extraction**: Who, what, when, where
+- 📅 **Date Resolution**: "today" → 2026-02-26
+- ⭐ **Quality Scoring**: 1-5 stars with auto-reject
+- 🎭 **Persona-based Memory**: personal/technical/social separation
+
+**Target Release:** May 2026
+
+📚 **Documentation:**
+- [Architecture Analysis](./docs/01-architecture-analysis.md)
+- [Phase 1 Specification](./docs/02-phase1-spec.md)
+- [Roadmap](./docs/03-roadmap.md)
+
 ## Features
 
 - 🔧 **Neural Memory Layer**: Persistent episodic memory storage
