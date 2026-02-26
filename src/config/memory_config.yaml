@@ -1,0 +1,39 @@
+# OpenClaw Memory Configuration
+# Adjust these values according to project needs
+
+neural_memory:
+  # SQLite database path
+  db_path: ".openclaw/{project_name}_memory.db"
+  
+  # Maximum tokens to inject into each prompt
+  max_context_tokens: 1500
+  
+  # Default confidence threshold for recall (0-1)
+  default_confidence_threshold: 0.75
+  
+  # Default number of hops for graph traversal
+  default_depth: 2
+
+session:
+  # Compress when messages exceed threshold
+  compress_threshold: 20
+  
+  # Number of messages to keep after compress
+  recent_window: 5
+
+tool_cache:
+  # Enable/disable tool result caching
+  enabled: true
+  
+  # Default TTL (hours) if tool not in cache_policy.py
+  default_ttl_hours: 1
+  
+  # Trim long tool results (chars)
+  max_result_chars: 500
+
+routing:
+  # Confidence threshold when using neural memory instead of tool call
+  neural_vs_tool_threshold: 0.85
+  
+  # Confidence threshold when using neural instead of traditional
+  neural_vs_traditional_threshold: 0.70

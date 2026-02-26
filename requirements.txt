@@ -1,0 +1,2 @@
+neural-memory>=0.8.0
+pyyaml>=6.0
