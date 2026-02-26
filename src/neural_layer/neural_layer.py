@@ -80,6 +80,9 @@ class NeuralMemoryLayer:
         Does not expire — decisions are important long-term.
         """
         await self._ensure_initialized()
+        if not NEURAL_MEMORY_AVAILABLE:
+            logger.info(f"[MOCK] Would store decision: {content[:80]}")
+            return
         full_content = f"[DECISION] {content}"
         if context:
             full_content += f" | Context: {context}"
@@ -93,6 +96,9 @@ class NeuralMemoryLayer:
         Auto-expires after expires_hours.
         """
         await self._ensure_initialized()
+        if not NEURAL_MEMORY_AVAILABLE:
+            logger.info(f"[MOCK] Would store context: {content[:80]}")
+            return
         await self._encoder.encode(
             content,
             memory_type="context",
@@ -105,6 +111,9 @@ class NeuralMemoryLayer:
         Use for: bug patterns, optimization insights, gotchas.
         """
         await self._ensure_initialized()
+        if not NEURAL_MEMORY_AVAILABLE:
+            logger.info(f"[MOCK] Would store insight: {content[:80]}")
+            return
         await self._encoder.encode(
             f"[INSIGHT] {content}",
             memory_type="insight",
@@ -113,6 +122,9 @@ class NeuralMemoryLayer:
     async def store_fact(self, content: str, expires_hours: int | None = None) -> None:
         """Store short-term or long-term fact."""
         await self._ensure_initialized()
+        if not NEURAL_MEMORY_AVAILABLE:
+            logger.info(f"[MOCK] Would store fact: {content[:80]}")
+            return
         await self._encoder.encode(
             content,
             memory_type="fact",
@@ -140,6 +152,9 @@ class NeuralMemoryLayer:
             max_result_chars: Max length of result to store
         """
         await self._ensure_initialized()
+        if not NEURAL_MEMORY_AVAILABLE:
+            logger.info(f"[MOCK] Would cache tool result: {tool_name}")
+            return
         args_str = json.dumps(args) if isinstance(args, dict) else str(args)
         
         result_trimmed = result[:max_result_chars]
@@ -170,6 +185,9 @@ class NeuralMemoryLayer:
             None if real tool call is needed.
         """
         await self._ensure_initialized()
+        if not NEURAL_MEMORY_AVAILABLE:
+            logger.info(f"[MOCK] Would check cache for: {tool_name}")
+            return None
         args_str = json.dumps(args) if isinstance(args, dict) else str(args)
         query = f"{tool_name} {args_str}"
         
@@ -203,6 +221,9 @@ class NeuralMemoryLayer:
             Context string if found, None otherwise.
         """
         await self._ensure_initialized()
+        if not NEURAL_MEMORY_AVAILABLE:
+            logger.info(f"[MOCK] Would recall: {query}")
+            return None
         result = await self._pipeline.query(query, depth=depth)
         
         if result and result.confidence >= min_confidence:
@@ -227,6 +248,9 @@ class NeuralMemoryLayer:
             Context string filtered and trimmed.
         """
         await self._ensure_initialized()
+        if not NEURAL_MEMORY_AVAILABLE:
+            logger.info(f"[MOCK] Would get task context: {task_description[:50]}")
+            return ""
         result = await self._pipeline.query(task_description, depth=2)
         
         if not result or not result.context:
