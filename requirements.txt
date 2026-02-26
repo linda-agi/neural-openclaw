@@ -1,6 +1,8 @@
 # Core dependencies
-neural-memory>=0.8.0
 pyyaml>=6.0
+
+# Optional: neural-memory (install if available, mock mode if not)
+# neural-memory>=0.8.0
 
 # Development dependencies
 pytest>=7.4.0
